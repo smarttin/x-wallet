@@ -1,0 +1,17 @@
+version: "2"
+services:
+  x-wallet-api:
+    build: .
+    environment:
+      - MONGO_URI=mongodb://localhost:27017/x-walletDB
+    volumes:
+      - .:/app
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"

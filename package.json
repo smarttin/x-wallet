@@ -1,0 +1,26 @@
+{
+  "name": "x-wallet",
+  "version": "1.0.0",
+  "description": "wallet system",
+  "main": "index.js",
+  "repository": "https://github.com/smarttin/x-wallet.git",
+  "author": "smarttin <smarttin77@gmail.com>",
+  "license": "MIT",
+  "engines": {
+    "node": "14.15.4",
+    "yarn": "*"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "cookie-parser": "^1.4.5",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^5.11.11",
+    "validator": "^13.5.2"
+  }
+}
