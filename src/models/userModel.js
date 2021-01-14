@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 import validator from 'validator';
 
+const usertype = ['noob', 'elite', 'admin'];
+
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -15,11 +17,6 @@ const userSchema = new mongoose.Schema(
       unique: true,
       lowercase: true,
       validate: [validator.isEmail, 'Please provide a valid email'],
-    },
-    userType: {
-      type: String,
-      enum: ['noob', 'elite', 'admin'],
-      default: 'noob',
     },
     password: {
       type: String,
@@ -38,6 +35,28 @@ const userSchema = new mongoose.Schema(
         message: 'Passwords are not the same!',
       },
     },
+    userType: {
+      type: String,
+      enum: usertype,
+      default: 'noob',
+    },
+    baseCurrency: {
+      type: String,
+      // required: true,
+      default: 'EUR',
+    },
+    hasWallet: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    wallet: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: 'Wallet',
+        required: [true, 'Wallet must belong to a user'],
+      },
+    ],
   },
   {timestamps: true},
 );
