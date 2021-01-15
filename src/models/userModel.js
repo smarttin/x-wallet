@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
 import validator from 'validator';
+import bcrypt from 'bcrypt';
 
 const usertype = ['noob', 'elite', 'admin'];
 
@@ -23,17 +23,6 @@ const userSchema = new mongoose.Schema(
       required: [true, 'Please provide a password'],
       minlength: 6,
       select: false,
-    },
-    passwordConfirm: {
-      type: String,
-      required: [true, 'Please confirm your password'],
-      validate: {
-        // This only works on CREATE and SAVE!!!
-        validator: function (el) {
-          return el === this.password;
-        },
-        message: 'Passwords are not the same!',
-      },
     },
     userType: {
       type: String,
@@ -68,13 +57,11 @@ userSchema.pre('save', async function (next) {
   // Hash the password with cost of 12
   this.password = await bcrypt.hash(this.password, 12);
 
-  // Delete passwordConfirm field
-  this.passwordConfirm = undefined;
   next();
 });
 
-userSchema.methods.matchPassword = async function (candidatePassword, userPassword) {
-  return await bcrypt.compare(candidatePassword, userPassword);
+userSchema.methods.matchPassword = async function (enteredPassword, userPassword) {
+  return await bcrypt.compare(enteredPassword, userPassword);
 };
 
 const User = mongoose.model('User', userSchema);

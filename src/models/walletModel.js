@@ -2,16 +2,21 @@ import mongoose from 'mongoose';
 
 const walletSchema = new mongoose.Schema(
   {
-    currency: [
-      {
-        name: {type: String},
-        symbol: {type: String},
-      },
-    ],
+    currencyName: {
+      type: String,
+      required: [true, 'Currency name required'],
+      minlength: [3, 'Currency name must be 3 letters eg - EUR'],
+      maxlength: [3, 'Currency name must be 3 letters eg - EUR'],
+    },
+    currencySymbol: String,
     owner: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',
       required: true,
+    },
+    balance: {
+      type: Number,
+      default: 0,
     },
   },
   {timestamps: true},
