@@ -39,11 +39,14 @@ const createSendToken = (user, statusCode, res) => {
 const signup = catchAsync(async (req, res, next) => {
   const {username, email, password, passwordConfirm, userType, baseCurrency} = req.body;
 
+  if (password !== passwordConfirm) {
+    return next(new AppError('Passwords must match', 400));
+  }
+
   const newUserData = {
     username,
     email,
     password,
-    passwordConfirm,
     userType,
     baseCurrency,
   };
@@ -58,7 +61,8 @@ const signup = catchAsync(async (req, res, next) => {
 
   if (user.hasWallet) {
     const wallet = await Wallet.create({
-      currency: {name: baseCurrency},
+      currencyName: baseCurrency,
+      currencySymbol: baseCurrency,
       owner: user._id,
     });
 
@@ -117,4 +121,13 @@ const protectRoute = catchAsync(async (req, res, next) => {
   next();
 });
 
-export default {signup, signin, protectRoute};
+const restrictTo = (...userType) => {
+  return (req, res, next) => {
+    if (!userType.includes(req.user.userType)) {
+      return next(new AppError('You do not have permission to perform this action', 403));
+    }
+    next();
+  };
+};
+
+export default {signup, signin, protectRoute, restrictTo};
