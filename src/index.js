@@ -4,6 +4,7 @@ import connectDB from './config/database.js';
 import globalErrorHandler from './controllers/errorController.js';
 import AppError from './utils/appError.js';
 import userRoutes from './routes/userRoutes.js';
+import walletRoutes from './routes/walletRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // Mount Routes
 app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/wallets', walletRoutes);
 
 // unknown route
 app.all('*', (req, res, next) => {
