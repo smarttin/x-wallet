@@ -6,7 +6,11 @@ const router = express.Router();
 
 router
   .route('/')
-  .get(authController.protectRoute, walletController.getMyWallets)
+  .get(
+    authController.protectRoute,
+    authController.restrictTo('noob', 'elite'),
+    walletController.getMyWallets,
+  )
   .post(
     authController.protectRoute,
     authController.restrictTo('elite'),
