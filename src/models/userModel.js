@@ -31,7 +31,6 @@ const userSchema = new mongoose.Schema(
     },
     baseCurrency: {
       type: String,
-      // required: true,
       default: 'EUR',
     },
     hasWallet: {

@@ -17,6 +17,7 @@
     "data:delete": "node src/seeder -delete"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "bcrypt": "^5.0.0",
     "colors": "^1.4.0",
     "cookie-parser": "^1.4.5",
