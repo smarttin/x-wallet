@@ -32,19 +32,18 @@ const userSchema = new mongoose.Schema(
     baseCurrency: {
       type: String,
       default: 'EUR',
+      uppercase: true,
     },
     hasWallet: {
       type: Boolean,
-      required: true,
       default: true,
+      select: false,
     },
-    wallet: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: 'Wallet',
-        required: [true, 'Wallet must belong to a user'],
-      },
-    ],
+    isAdmin: {
+      type: Boolean,
+      default: false,
+      select: false,
+    },
   },
   {timestamps: true},
 );

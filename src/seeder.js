@@ -4,6 +4,7 @@ import connectDB from './config/database.js';
 import Wallet from './models/walletModel.js';
 import User from './models/userModel.js';
 import {users, wallets} from './data/data.js';
+import Transaction from './models/transactionModel.js';
 
 dotenv.config();
 connectDB();
@@ -12,6 +13,7 @@ const importData = async () => {
   try {
     await User.deleteMany();
     await Wallet.deleteMany();
+    await Transaction.deleteMany();
 
     await User.insertMany(users);
     await Wallet.insertMany(wallets);
@@ -28,6 +30,7 @@ const destroyData = async () => {
   try {
     await User.deleteMany();
     await Wallet.deleteMany();
+    await Transaction.deleteMany();
 
     console.log('Data Deleted!'.red.inverse);
     process.exit();

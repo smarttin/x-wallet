@@ -43,7 +43,7 @@ const signup = catchAsync(async (req, res, next) => {
     return next(new AppError('Passwords must match', 400));
   }
 
-  const newUserData = {
+  const newUser = {
     username,
     email,
     password,
@@ -52,21 +52,19 @@ const signup = catchAsync(async (req, res, next) => {
   };
 
   if (userType === 'admin') {
-    newUserData.baseCurrency = null;
-    newUserData.hasWallet = false;
-    newUserData.wallet = null;
+    newUser.baseCurrency = null;
+    newUser.hasWallet = false;
+    newUser.isAdmin = true;
   }
 
-  const user = new User(newUserData);
+  const user = new User(newUser);
 
   if (user.hasWallet) {
-    const wallet = await Wallet.create({
+    await Wallet.create({
       currencyName: baseCurrency,
       currencySymbol: baseCurrency,
       owner: user._id,
     });
-
-    await user.wallet.push(wallet._id);
   }
 
   if (!user) {

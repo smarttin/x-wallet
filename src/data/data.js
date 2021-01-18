@@ -18,8 +18,8 @@ const users = [
     password: testPassword,
     userType: 'admin',
     baseCurrency: null,
-    wallet: null,
     hasWallet: false,
+    isAdmin: true,
   },
   {
     _id: eliteId,
@@ -29,7 +29,6 @@ const users = [
     userType: 'elite',
     baseCurrency: 'CAD',
     hasWallet: true,
-    wallet: [eliteWalletId],
   },
   {
     _id: noobId,
@@ -39,7 +38,6 @@ const users = [
     userType: 'noob',
     baseCurrency: 'EUR',
     hasWallet: true,
-    wallet: [noobWalletId],
   },
 ];
 
