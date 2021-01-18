@@ -36,21 +36,8 @@ const createNewWallet = catchAsync(async (req, res, next) => {
     );
   }
 
-  // use fixer.io/api/symbols to validate currency symbol and obtain currency name
-  const currency_symbol = `http://data.fixer.io/api/symbols?access_key=${process.env.API_KEY}`;
-  const {data} = await axios.get(currency_symbol);
-
-  if (!data.symbols.hasOwnProperty(currencySymbol)) {
-    return next(
-      new AppError(
-        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
-        400,
-      ),
-    );
-  }
-
-  const symbol = currencySymbol;
-  const name = data.symbols[currencySymbol];
+  // validate input currency using fixer.io, and return name & symbol
+  const {symbol, name} = await validateCurrency(currencySymbol, next);
 
   // logged in user
   const user = req.user;

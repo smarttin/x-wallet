@@ -37,6 +37,25 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
+export const validateCurrency = async (currency, next) => {
+  // use fixer.io/api/symbols to validate currency symbol and obtain currency name
+  const currency_symbol = `http://data.fixer.io/api/symbols?access_key=${process.env.API_KEY}`;
+  const {data} = await axios.get(currency_symbol);
+
+  if (!data.symbols.hasOwnProperty(currency)) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
+
+  const symbol = currency;
+  const name = data.symbols[currency];
+  return {symbol, name};
+};
+
 const signup = catchAsync(async (req, res, next) => {
   const {username, email, password, passwordConfirm, userType, baseCurrency} = req.body;
   if (!baseCurrency || baseCurrency.length > 3 || baseCurrency.length < 3) {
@@ -51,30 +70,15 @@ const signup = catchAsync(async (req, res, next) => {
     return next(new AppError('Passwords must match', 400));
   }
 
-  //noob userTypes can only use EUR as base currency
-
-  // use fixer.io/api/symbols to validate currency symbol and obtain currency name
-  const currency_symbol = `http://data.fixer.io/api/symbols?access_key=${process.env.API_KEY}`;
-  const {data} = await axios.get(currency_symbol);
-
-  if (!data.symbols.hasOwnProperty(baseCurrency)) {
-    return next(
-      new AppError(
-        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
-        400,
-      ),
-    );
-  }
-
-  const currencySymbol = baseCurrency;
-  const currencyName = data.symbols[baseCurrency];
+  // validate input currency using fixer.io, and return name & symbol
+  const {symbol, name} = await validateCurrency(baseCurrency, next);
 
   const newUser = {
     username,
     email,
     password,
     userType,
-    baseCurrency: currencySymbol,
+    baseCurrency: symbol,
   };
 
   if (userType === 'admin') {
@@ -91,8 +95,8 @@ const signup = catchAsync(async (req, res, next) => {
 
   if (user.hasWallet) {
     await Wallet.create({
-      currencyName: currencyName,
-      currencySymbol: currencySymbol,
+      currencyName: name,
+      currencySymbol: symbol,
       owner: user._id,
     });
   }
@@ -119,7 +123,7 @@ const signin = catchAsync(async (req, res, next) => {
 });
 
 const protectRoute = catchAsync(async (req, res, next) => {
-  // Get token and check of it's there
+  // get token from req.header OR req.cookies
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
