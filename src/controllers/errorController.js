@@ -17,11 +17,19 @@ const handleValidationErrorDB = (err) => {
   return new AppError(message, 400);
 };
 
-const handleJWTError = () => new AppError('Invalid token. Please login again!', 401);
+const handleJWTError = () => {
+  const message = 'Invalid token. Please login again!';
+  return new AppError(message, 401);
+};
 
-const handleJWTExpiredError = () => new AppError('Your token has expired! please login again', 401);
+const handleJWTExpiredError = () => {
+  const message = 'Your token has expired! please login again';
+  return new AppError(message, 401);
+};
 
-const handleAxiosError = () => new AppError('NETWORK CONNECT TIMEOUT', 599);
+const handleAxiosError = () => {
+  return new AppError('NETWORK CONNECT TIMEOUT', 599);
+};
 
 const sendErrorForDev = (err, res) => {
   res.status(err.statusCode).json({

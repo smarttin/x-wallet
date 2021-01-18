@@ -1,6 +1,7 @@
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import Wallet from '../models/walletModel.js';
+import axios from 'axios';
 
 // elite user can create more wallet & currencies
 // get all wallet
@@ -25,39 +26,50 @@ const getMyWallets = catchAsync(async (req, res, next) => {
 });
 
 const createNewWallet = catchAsync(async (req, res, next) => {
-  const {currencyName} = req.body;
-  if (!currencyName) {
-    return next(new AppError('Please provide currency name!', 400));
+  const {currencySymbol} = req.body;
+  if (!currencySymbol || currencySymbol.length > 3 || currencySymbol.length < 3) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
   }
 
+  // use fixer.io/api/symbols to validate currency symbol and obtain currency name
+  const currency_symbol = `http://data.fixer.io/api/symbols?access_key=${process.env.API_KEY}`;
+  const {data} = await axios.get(currency_symbol);
+
+  if (!data.symbols.hasOwnProperty(currencySymbol)) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
+
+  const symbol = currencySymbol;
+  const name = data.symbols[currencySymbol];
+
+  // logged in user
   const user = req.user;
-  // const user = await User.findById(req.user._id);
 
-  const ownWallets = await Wallet.find({owner: user._id});
-  // console.log('ownWallets', ownWallets);
-
-  const alreadyPresent = ownWallets.filter((wallet) => wallet.currencyName === currencyName);
-
-  // console.log('alreadyPresent', alreadyPresent);
-
-  if (alreadyPresent.length) {
-    return next(new AppError('Wallet or selected currency already exist!', 409));
+  const walletExists = await Wallet.findOne({owner: user._id, currencySymbol: symbol});
+  if (walletExists) {
+    return next(new AppError('Wallet for selected currency already exist!', 409));
   }
 
   const newWallet = await Wallet.create({
-    currencyName: currencyName,
-    currencySymbol: currencyName,
+    currencyName: name,
+    currencySymbol: symbol,
     owner: req.user._id,
   });
-
-  user.wallet.push(newWallet._id);
-
-  await user.save();
 
   res.status(200).json({
     status: 'Success',
     data: {
-      currency: newWallet,
+      wallet: newWallet,
     },
   });
 });

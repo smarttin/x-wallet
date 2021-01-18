@@ -5,10 +5,14 @@ const walletSchema = new mongoose.Schema(
     currencyName: {
       type: String,
       required: [true, 'Currency name required'],
-      minlength: [3, 'Currency name must be 3 letters eg - EUR'],
-      maxlength: [3, 'Currency name must be 3 letters eg - EUR'],
     },
-    currencySymbol: String,
+    currencySymbol: {
+      type: String,
+      minlength: [3, 'Currency symbol must be 3 letters eg - EUR'],
+      maxlength: [3, 'Currency symbol must be 3 letters eg - EUR'],
+      required: [true, 'Currency symbol is required'],
+      uppercase: true,
+    },
     owner: {
       type: mongoose.Schema.ObjectId,
       ref: 'User',

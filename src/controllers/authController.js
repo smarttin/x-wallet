@@ -1,3 +1,4 @@
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import {promisify} from 'util';
 import User from '../models/userModel.js';
@@ -38,17 +39,42 @@ const createSendToken = (user, statusCode, res) => {
 
 const signup = catchAsync(async (req, res, next) => {
   const {username, email, password, passwordConfirm, userType, baseCurrency} = req.body;
-
+  if (!baseCurrency || baseCurrency.length > 3 || baseCurrency.length < 3) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
   if (password !== passwordConfirm) {
     return next(new AppError('Passwords must match', 400));
   }
+
+  //noob userTypes can only use EUR as base currency
+
+  // use fixer.io/api/symbols to validate currency symbol and obtain currency name
+  const currency_symbol = `http://data.fixer.io/api/symbols?access_key=${process.env.API_KEY}`;
+  const {data} = await axios.get(currency_symbol);
+
+  if (!data.symbols.hasOwnProperty(baseCurrency)) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
+
+  const currencySymbol = baseCurrency;
+  const currencyName = data.symbols[baseCurrency];
 
   const newUser = {
     username,
     email,
     password,
     userType,
-    baseCurrency,
+    baseCurrency: currencySymbol,
   };
 
   if (userType === 'admin') {
@@ -57,18 +83,18 @@ const signup = catchAsync(async (req, res, next) => {
     newUser.isAdmin = true;
   }
 
+  //userModel data validation
   const user = new User(newUser);
+  if (!user) {
+    return next(new AppError('Invalid user data!', 400));
+  }
 
   if (user.hasWallet) {
     await Wallet.create({
-      currencyName: baseCurrency,
-      currencySymbol: baseCurrency,
+      currencyName: currencyName,
+      currencySymbol: currencySymbol,
       owner: user._id,
     });
-  }
-
-  if (!user) {
-    return next(new AppError('Invalid user data!', 400));
   }
 
   await user.save();
