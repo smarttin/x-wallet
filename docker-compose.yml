@@ -1,17 +1,23 @@
-version: "2"
+version: '3.4'
+
 services:
-  x-wallet-api:
-    build: .
+  xwallet:
+    image: xwallet
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     environment:
-      - MONGO_URI=mongodb://localhost:27017/x-walletDB
+      NODE_ENV: production
+    ports:
+      - 5000:5000
     volumes:
       - .:/app
-    ports:
-      - "5000:5000"
-    depends_on:
+    env_file:
+      - .env
+    links:
       - mongodb
-
   mongodb:
-    image: mongo
+    image: mongo:latest
     ports:
-      - "27017:27017"
+      - 27017:27017
+
