@@ -37,12 +37,10 @@ const userSchema = new mongoose.Schema(
     hasWallet: {
       type: Boolean,
       default: true,
-      select: false,
     },
     isAdmin: {
       type: Boolean,
       default: false,
-      select: false,
     },
   },
   {timestamps: true},

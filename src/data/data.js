@@ -5,8 +5,9 @@ const adminId = mongoose.Types.ObjectId();
 const eliteId = mongoose.Types.ObjectId();
 const noobId = mongoose.Types.ObjectId();
 
-const eliteWalletId = mongoose.Types.ObjectId();
-const noobWalletId = mongoose.Types.ObjectId();
+const walletId0 = mongoose.Types.ObjectId();
+const walletId1 = mongoose.Types.ObjectId();
+const walletId2 = mongoose.Types.ObjectId();
 
 const testPassword = bcrypt.hashSync('121212', 12);
 
@@ -43,16 +44,22 @@ const users = [
 
 const wallets = [
   {
-    _id: eliteWalletId,
-    currencyName: 'CAD',
+    _id: walletId0,
+    currencyName: 'Canadian Dollar',
     currencySymbol: 'CAD',
     owner: eliteId,
   },
   {
-    _id: noobWalletId,
-    currencyName: 'EUR',
+    _id: walletId1,
+    currencyName: 'Euro',
     currencySymbol: 'EUR',
     owner: noobId,
+  },
+  {
+    _id: walletId2,
+    currencyName: 'United States Dollar',
+    currencySymbol: 'USD',
+    owner: eliteId,
   },
 ];
 

@@ -1,16 +1,17 @@
 import mongoose from 'mongoose';
+import validator from 'validator';
 
 const type = ['deposit', 'withdrawal'];
 const status = ['pending', 'success', 'failed'];
 
 const transactionSchema = new mongoose.Schema(
   {
-    transaction_status: {
+    transactionStatus: {
       type: String,
       enum: status,
       required: true,
     },
-    transaction_type: {
+    transactionType: {
       type: String,
       enum: type,
       required: true,
@@ -18,25 +19,25 @@ const transactionSchema = new mongoose.Schema(
     amount: {
       type: Number,
       default: 0,
-      required: true,
+      required: [true, 'Please provide amount'],
     },
     baseCurrency: {
       type: String,
-      required: true,
+      required: [true, 'Please provide base currency'],
     },
     targetCurrency: {
       type: String,
+      required: [true, 'Please provide target currency'],
+    },
+    walletId: {
+      type: String,
       required: true,
     },
-    sender: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    recipient: {
-      type: mongoose.Schema.ObjectId,
-      ref: 'User',
-      required: true,
+    reference: {
+      type: String,
+      required: [true, 'Please provide user email for reference'],
+      lowercase: true,
+      validate: [validator.isEmail, 'Please provide a valid email'],
     },
   },
   {timestamps: true},
