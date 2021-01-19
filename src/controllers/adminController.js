@@ -3,6 +3,8 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import User from '../models/userModel.js';
 import Wallet from '../models/walletModel.js';
+import {validateCurrency} from './authController.js';
+import {convertToBase, generateTransactionDetails} from './transactionController.js';
 
 /**
  * Admin gets the list of pending transactions
@@ -92,7 +94,117 @@ const getUserById = catchAsync(async (req, res, next) => {
 /**
  * Admin fund wallets for Noob or Elite users in any currency
  */
-const FundAnyUser = catchAsync(async (req, res, next) => {});
+const FundAnyUser = catchAsync(async (req, res, next) => {
+  const userId = req.params.id;
+  const {targetCurrency, amount} = req.body;
+  if (!targetCurrency || targetCurrency.length > 3 || targetCurrency.length < 3) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
+
+  // validate input currency using fixer.io, and return name & symbol
+  const {symbol, name} = await validateCurrency(targetCurrency, next);
+
+  // find user whose wallet will be funded not logged in user
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new AppError('user not found', 404));
+  }
+
+  // if user.isAdmin, user is an Admin
+  // and Admins don't have wallet and shouldn't fund themselves
+  if (user.isAdmin) {
+    return next(new AppError('you cannot perform this action', 403));
+  }
+
+  // find user wallet with targetCurrency and fund it
+  // if user does not have wallet with targetCurrency
+  // create and fund it
+  const wallet = await Wallet.find({owner: user._id});
+  const userWallet = wallet.find((w) => w.currencySymbol === symbol);
+
+  if (user.userType === 'noob' && !userWallet) {
+    const noobWallet = wallet[0];
+    // convert targetCurrency to noobs baseCurrecy and fund
+    const amountInBaseCurrency = await convertToBase(user.baseCurrency, symbol, amount);
+    await generateTransactionDetails(
+      'success',
+      'deposit',
+      noobWallet.currencySymbol,
+      symbol,
+      user.email,
+      amountInBaseCurrency,
+      noobWallet._id,
+    );
+
+    // update noob user wallet
+    noobWallet.balance += amountInBaseCurrency;
+    const updateWallet = await noobWallet.save();
+
+    return res.status(200).json({
+      status: 'Success',
+      message: `Admin's deposit for ${user.email}, successfully`,
+      data: {
+        wallet: updateWallet,
+      },
+    });
+  }
+
+  if (user.userType === 'elite' && !userWallet) {
+    // create new wallet based on target and fund
+    const newWallet = await Wallet.create({
+      currencyName: name,
+      currencySymbol: symbol,
+      owner: user._id,
+      balance: amount,
+    });
+
+    await generateTransactionDetails(
+      'success',
+      'deposit',
+      symbol,
+      symbol,
+      user.email,
+      amount,
+      newWallet._id,
+    );
+
+    return res.status(200).json({
+      status: 'Success',
+      message: `Admin's deposit for ${user.email}, successfully`,
+      data: {
+        wallet: newWallet,
+      },
+    });
+  }
+
+  // fund user wallet that contains targetCurrency
+  await generateTransactionDetails(
+    'success',
+    'deposit',
+    userWallet.currencySymbol,
+    symbol,
+    user.email,
+    amount,
+    userWallet._id,
+  );
+
+  // update and return
+  userWallet.balance += amount;
+  const updateWallet = await userWallet.save();
+
+  res.status(200).json({
+    status: 'Success',
+    message: `Admin's deposit for ${user.email}, successfully`,
+    data: {
+      wallet: updateWallet,
+    },
+  });
+});
 
 /**
  * Admin change the main/base currency of any user
