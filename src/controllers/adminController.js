@@ -209,7 +209,32 @@ const FundAnyUser = catchAsync(async (req, res, next) => {
 /**
  * Admin change the main/base currency of any user
  */
-const changeBaseCurrency = catchAsync(async (req, res, next) => {});
+const changeBaseCurrency = catchAsync(async (req, res, next) => {
+  const {newBaseCurrency} = req.body;
+  if (!newBaseCurrency || newBaseCurrency.length > 3 || newBaseCurrency.length < 3) {
+    return next(
+      new AppError(
+        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        400,
+      ),
+    );
+  }
+
+  const user = await User.findByIdAndUpdate(
+    {_id: req.params.id},
+    {$set: {baseCurrency: newBaseCurrency}},
+    {new: true},
+  );
+  if (!user) {
+    return next(new AppError('No user was found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    message: `user main currency successfully changed to ${updatedUser.baseCurrency}`,
+    data: null,
+  });
+});
 
 /**
  * Admin promote or demote Noobs or Elite users
