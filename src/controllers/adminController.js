@@ -1,6 +1,8 @@
 import Transaction from '../models/transactionModel.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
+import User from '../models/userModel.js';
+import Wallet from '../models/walletModel.js';
 
 /**
  * Admin gets the list of pending transactions
@@ -19,19 +21,46 @@ const getPendingTransactions = catchAsync(async (req, res, next) => {
 });
 
 /**
- * Admin approves pending transactions for noob users using transaction ID
+ * Admin approve pending transactions for noob users using transaction ID
  */
 const approveTransaction = catchAsync(async (req, res, next) => {});
 
 /**
  * Admin get all user
  */
-const getUsers = catchAsync(async (req, res, next) => {});
+const getUsers = catchAsync(async (req, res, next) => {
+  const users = await User.find({});
+
+  if (!users) {
+    return next(new AppError('No user found', 404));
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    results: users.length,
+    data: {
+      users: users,
+    },
+  });
+});
 
 /**
  * Admin specific user by id
  */
-const getUser = catchAsync(async (req, res, next) => {});
+const getUserById = catchAsync(async (req, res, next) => {
+  const user = await User.findById(req.params.id);
+
+  if (!user) {
+    return next(new AppError('User not found', 404));
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    data: {
+      user: user,
+    },
+  });
+});
 
 /**
  * Admin fund wallets for Noob or Elite users in any currency
@@ -52,7 +81,7 @@ export default {
   getPendingTransactions,
   approveTransaction,
   getUsers,
-  getUser,
+  getUserById,
   FundAnyUser,
   changeBaseCurrency,
   changeUserType,

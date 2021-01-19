@@ -25,7 +25,7 @@ router.route('/admin/users').get(adminController.getUsers);
 
 router
   .route('/admin/:id')
-  .get(adminController.getUser)
+  .get(adminController.getUserById)
   .post(adminController.FundAnyUser)
   .patch(adminController.approveTransaction)
   .patch(adminController.changeBaseCurrency)
