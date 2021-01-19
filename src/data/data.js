@@ -16,7 +16,7 @@ const users = [
     _id: adminId,
     username: 'admin',
     email: 'admin@gmail.com',
-    password: testPassword,
+    password: bcrypt.hashSync('01234Admin', 12),
     userType: 'admin',
     baseCurrency: null,
     hasWallet: false,

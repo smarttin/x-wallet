@@ -106,7 +106,7 @@ const FundAnyUser = catchAsync(async (req, res, next) => {
     );
   }
 
-  // validate input currency using fixer.io, and return name & symbol
+  // validate targetCurrency using fixer.io, and return name & symbol
   const {symbol, name} = await validateCurrency(targetCurrency, next);
 
   // find user whose wallet will be funded not logged in user
@@ -219,6 +219,7 @@ const changeBaseCurrency = catchAsync(async (req, res, next) => {
       ),
     );
   }
+  //TODO: use fixer.io/api/symbols to validate newBaseCurrency input obtain symbol
 
   const user = await User.findByIdAndUpdate(
     {_id: req.params.id},
