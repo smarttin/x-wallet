@@ -239,7 +239,28 @@ const changeBaseCurrency = catchAsync(async (req, res, next) => {
 /**
  * Admin promote or demote Noobs or Elite users
  */
-const changeUserType = catchAsync(async (req, res, next) => {});
+const changeUserType = catchAsync(async (req, res, next) => {
+  const {newUserType} = req.body;
+  if (!newUserType) {
+    return next(new AppError('You have to enter new user type', 400));
+  }
+  // find user by id and update
+  const user = await User.findByIdAndUpdate(
+    {_id: req.params.id},
+    {$set: {userType: newUserType}},
+    {new: true},
+  );
+
+  if (!user) {
+    return next(new AppError('No user was found with that ID', 404));
+  }
+
+  res.status(200).json({
+    status: 'Success',
+    message: `user type changed successfully changed to ${user.userType}`,
+    data: null,
+  });
+});
 
 export default {
   getPendingTransactions,
