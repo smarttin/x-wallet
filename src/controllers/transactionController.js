@@ -36,10 +36,10 @@ export const convertToBase = async (base, target, amount) => {
   return amountInBaseCurrency;
 };
 
-//TODO: use fixer.io/api/symbols to validate currency symbol and obtain currency name
 /**
  * Deposit / Fund currnecy to same or different wallet
  */
+//TODO: use fixer.io/api/symbols to validate targetCurrency input and obtain symbol and name
 const deposit = catchAsync(async (req, res, next) => {
   const {targetCurrency, amount} = req.body;
   if (!targetCurrency || !amount) {
@@ -52,7 +52,7 @@ const deposit = catchAsync(async (req, res, next) => {
   // user.baseCurrency === targetCurrency i.e deposit is based on same currency
   // since this is only accessible to noob/elite, user must! have wallet[atleast one]
   // find user wallet that contains targetCurrency
-  const wallet = await Wallet.find({owner: user._id}); //currencySymbol: targetCurrency
+  const wallet = await Wallet.find({owner: user._id});
   const userWallet = wallet.find((w) => w.currencySymbol === targetCurrency);
 
   // for noob users where baseCurreny !== targetCurrency
@@ -60,6 +60,7 @@ const deposit = catchAsync(async (req, res, next) => {
     //convert targetCurrency to baseCurrency using Latest Rates Endpoint
     const amountInBaseCurrency = await convertToBase(user.baseCurrency, targetCurrency, amount);
 
+    const noobUserWallet = wallet[0];
     await generateTransactionDetails(
       'pending',
       'deposit',
@@ -67,7 +68,7 @@ const deposit = catchAsync(async (req, res, next) => {
       targetCurrency,
       user.email,
       amountInBaseCurrency,
-      userWallet._id,
+      noobUserWallet._id,
     );
 
     return res.json({
@@ -149,6 +150,98 @@ const deposit = catchAsync(async (req, res, next) => {
   });
 });
 
-const withdraw = catchAsync(async (req, res, next) => {});
+/**
+ * Withdraw currency from same wallet or to a different wallet
+ */
+//TODO: use fixer.io/api/symbols to validate targetCurrency input and obtain symbol and name
+const withdraw = catchAsync(async (req, res, next) => {
+  const {targetCurrency, amount} = req.body;
+
+  //logged in user & transaction reference
+  const user = req.user;
+  const wallets = await Wallet.find({owner: user._id}); //, currencySymbol: targetCurrency
+  const wallet = wallets.find((w) => w.currencySymbol === targetCurrency);
+
+  // noob user with one wallet, & user.baseCurrency !== targetCurrency
+  if (user.userType === 'noob' && targetCurrency !== user.baseCurrency) {
+    const noobBaseWallet = wallets[0];
+
+    // convert withdrawal targetCurrency to user.baseCurrency and withdraw
+    const amountInBaseCurrency = await convertToBase(user.baseCurrency, targetCurrency, amount);
+
+    if (amountInBaseCurrency > noobBaseWallet.balance || noobBaseWallet.balance === 0) {
+      return next(new AppError('Transaction failed, insufficient funds', 400));
+    }
+
+    //TODO: generate withdrawal transaction details
+    //update wallet and save
+    noobBaseWallet.balance -= amountInBaseCurrency;
+    const updateWallet = await noobBaseWallet.save();
+
+    res.status(200).json({
+      status: 'Success',
+      message: `You withdrawal is successful`,
+      data: {
+        wallet: updateWallet,
+      },
+    });
+  }
+
+  // elite user without wallet based on withdrawal targetCurrency
+  if (user.userType === 'elite' && targetCurrency !== user.baseCurrency) {
+    // elite user does not have wallet base on withdrawal target currency
+    // convert amount in target currency to elite user baseCurrency
+    let updateWallet;
+    if (!wallet) {
+      // find elite user wallet which contains elite user baseCurrency
+      const eliteBaseWallet = wallets.find((w) => w.currencySymbol === user.baseCurrency);
+
+      //convert amount in withdrawal targetCurrency to elite user baseCurrency
+      const amountInBaseCurrency = await convertToBase(user.baseCurrency, targetCurrency, amount);
+
+      if (amountInBaseCurrency > eliteBaseWallet.balance || eliteBaseWallet.balance === 0) {
+        return next(new AppError('Transaction failed, insufficient funds', 400));
+      }
+      // deduct amountInBaseCurrency from elite user baseCurrency
+      eliteBaseWallet.balance -= amountInBaseCurrency;
+      updateWallet = await eliteBaseWallet.save();
+    } else {
+      // elite user has wallet based on targetCurrency, withdraw from it
+      if (amount > wallet.balance || wallet.balance === 0) {
+        return next(new AppError('Transaction failed, insufficient funds', 400));
+      }
+      wallet.balance -= amount;
+      updateWallet = await wallet.save();
+    }
+    //TODO: generate withdrawal transaction details
+
+    res.status(200).json({
+      status: 'Success',
+      message: `You withdrawal is successful`,
+      data: {
+        wallet: updateWallet,
+      },
+    });
+  }
+
+  // user.userType has wallet with withdrawal targetCurrency
+  // withdrawal targetCurrency === user.baseCurrency
+  //TODO: generate withdrawal transaction details
+
+  // deduct from wallet and save
+  if (amount > wallet.balance || wallet.balance === 0) {
+    return next(new AppError('Transaction failed, insufficient funds', 400));
+  }
+  wallet.balance -= amount;
+  const updateWallet = await wallet.save();
+
+  res.status(200).json({
+    status: 'Success',
+    message: `You withdrawal is successful`,
+    data: {
+      wallet: updateWallet,
+    },
+  });
+});
 
 export default {deposit, withdraw};
