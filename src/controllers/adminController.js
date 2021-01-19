@@ -23,7 +23,34 @@ const getPendingTransactions = catchAsync(async (req, res, next) => {
 /**
  * Admin approve pending transactions for noob users using transaction ID
  */
-const approveTransaction = catchAsync(async (req, res, next) => {});
+const approveTransaction = catchAsync(async (req, res, next) => {
+  const transactionId = req.params.id;
+  if (!transactionId) {
+    return next(new AppError('Enter transaction ID in order to approve transaction', 400));
+  }
+
+  // find specific pending transaction using transactionStatus & transaction ID
+  const transaction = await Transaction.findOne({_id: transactionId, transactionStatus: 'pending'});
+
+  if (!transaction) {
+    return next(new AppError('This transaction does not exist!', 404));
+  }
+  // find get wallet and confirm transaction
+  const wallet = await Wallet.findById(transaction.walletId);
+
+  transaction.transactionStatus = 'success';
+  wallet.balance += transaction.amount;
+
+  await transaction.save();
+  await wallet.save();
+
+  res.status(200).json({
+    status: 'Success',
+    data: {
+      message: `${transaction.reference}'s transaction, confirmed successfully`,
+    },
+  });
+});
 
 /**
  * Admin get all user
