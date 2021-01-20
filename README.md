@@ -28,13 +28,17 @@ yarn
 Set environment variables:
 
 ```bash
-cp .env.example.env
+cp .env.example
 ```
 
 ## Running Locally
 
 ```bash
 yarn dev
+# import data
+yarn data:import
+# delete data
+yarn data:delete
 ```
 
 ## Docker
@@ -46,8 +50,9 @@ docker-compose up
 ```
 
 ```bash
-# import data
+data found at src/data/data.js
 docker exec -it <containerId> sh
+# import data
 yarn data:import
 # delete data
 yarn data:delete
@@ -55,8 +60,40 @@ yarn data:delete
 
 ## technologies used and description
 
-nodejs
-expressjs
-mongoose
-mongodb
-jsonwwebtoken
+```
+# Node.js
+asynchronous, event-driven, JavaScript runtime used for web server.
+```
+
+```
+# Express.js
+Node.js framework for web development was used for the REST APIs.
+```
+
+```
+# Mongoose
+Object Data Modeling (ODM) library for MongoDB and Node. js
+used to manage relationships between data, provides schema validation
+and model data.
+```
+
+```
+# Mongodb
+schema-less NoSQL document database used as database
+```
+
+```
+# Jsonwwebtoken
+used to create access tokens for authentication.
+```
+
+```
+# Postman
+API client used to create, share, test and document APIs.
+```
+
+```
+# Git & Github
+git version control system for tracking changes
+github code hosting platform for version control and collaboration
+```
