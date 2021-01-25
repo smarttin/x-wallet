@@ -2,7 +2,10 @@ import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
-const usertype = ['noob', 'elite', 'admin'];
+const usertype = {
+  values: ['noob', 'elite', 'admin'],
+  message: 'Please choose a valid user type, either - noob, elite or admin',
+};
 
 const userSchema = new mongoose.Schema(
   {

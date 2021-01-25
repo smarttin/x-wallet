@@ -43,22 +43,18 @@ const sendErrorForDev = (err, res) => {
 const sendErrorForProd = (err, res) => {
   // Operational error that we trust: send message to client
   if (err.isOperational) {
-    res.status(err.statusCode).json({
+    return res.status(err.statusCode).json({
       status: err.status,
       message: err.message,
     });
-
-    // Programming or unknown error: dont leak error details
-  } else {
-    // log the error
-    console.error('Error', err);
-
-    // send generic message
-    res.status(500).json({
-      status: 'Error',
-      message: 'Something went wrong!',
-    });
   }
+  // Programming or unknown error: dont leak error details
+  console.error('Error', err);
+  // send generic message
+  return res.status(500).json({
+    status: 'Error',
+    message: 'Something went wrong!',
+  });
 };
 
 export default (err, req, res, next) => {
@@ -77,7 +73,7 @@ export default (err, req, res, next) => {
     if (error.name === 'JsonWebTokenError') error = handleJWTError();
     if (error.name === 'TokenExpiredError') error = handleJWTExpiredError();
     if (error.code === 'ENOTFOUND' && error.isAxiosError) error = handleAxiosError();
-
+    if (error._message === 'User validation failed') error = handleValidationErrorDB(error);
     sendErrorForProd(error, res);
   }
 };

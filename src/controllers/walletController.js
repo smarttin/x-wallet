@@ -2,6 +2,7 @@ import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import Wallet from '../models/walletModel.js';
 import axios from 'axios';
+import {validateCurrency} from './authController.js';
 
 // elite user can create more wallet & currencies
 // get all wallet
@@ -30,7 +31,7 @@ const createNewWallet = catchAsync(async (req, res, next) => {
   if (!currencySymbol || currencySymbol.length > 3 || currencySymbol.length < 3) {
     return next(
       new AppError(
-        'Please choose a valid currency symbol, currency symbol must be 3 letters eg - EUR or USD',
+        'Please choose a valid currencySymbol, currency symbol must be 3 letters eg - EUR or USD',
         400,
       ),
     );

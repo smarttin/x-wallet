@@ -4,7 +4,7 @@ wallet system
 
 # link to api docs
 
-https://documenter.getpostman.com/view/6064687/TVzYeZ2b
+https://documenter.getpostman.com/view/6064687/TW6up91S
 
 ## Requirements
 
